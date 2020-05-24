@@ -1,0 +1,79 @@
+@page "/myorders/{orderId:int}"
+
+@using System.Threading
+@inject HttpClient HttpClient
+@implements IDisposable
+
+<div class="main">
+    @if (_invalidOrder)
+    {
+        <h2>Nope</h2>
+        <p>Sorry, this order could not be loaded.</p>
+    } 
+    else if (_orderWithStatus == null)
+    {
+        <text>Loading...</text>
+    }
+    else
+    {
+        <div class="track-order">
+            <div class="track-order-title">
+                <h2>
+                    Order place @_orderWithStatus.Order.CreatedTime.ToLongTimeString()
+                </h2>
+                <p class="ml-auto mb-0">
+                    Status: <strong>@_orderWithStatus.StatusText</strong>
+                </p>
+            </div>
+            <div class="track-order-body">
+                <div class="track-order-details">
+                    <OrderReview Order="_orderWithStatus.Order"/>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+
+    OrderWithStatus _orderWithStatus;
+    bool _invalidOrder;
+    CancellationTokenSource pollingCancellationToken;
+
+    protected override void OnParametersSet()
+    {
+        pollingCancellationToken?.Cancel();
+
+        PollForUpdates();
+    }
+
+    private async Task PollForUpdates()
+    {
+        pollingCancellationToken = new CancellationTokenSource();
+        while (!pollingCancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                _invalidOrder = false;
+                _orderWithStatus = await HttpClient.GetFromJsonAsync<OrderWithStatus>($"orders/{OrderId}");
+            }
+            catch (Exception e)
+            {
+                _invalidOrder = true;
+                pollingCancellationToken.Cancel();
+                Console.Error.WriteLine(e);
+            }
+            
+            StateHasChanged();
+
+            await Task.Delay(4000);
+        }
+    }
+
+    public void Dispose()
+    {
+        pollingCancellationToken?.Cancel();
+    }
+
+}
