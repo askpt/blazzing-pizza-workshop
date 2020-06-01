@@ -1,12 +1,14 @@
 @page "/myorders"
-@inject HttpClient HttpClient
+@attribute [Authorize]
+
+@inject OrdersClient OrdersClient
 
 <div class="main">
     @if (_orderWithStatuses == null)
     {
         <text>Loading...</text>
     }
-    else if (_orderWithStatuses.Count == 0)
+    else if (!_orderWithStatuses.Any())
     {
         <h2>No orders placed</h2>
         <a class="btn btn-success" href="">Order some pizza</a>
@@ -39,11 +41,18 @@
 </div>
 
 @code {
-    List<OrderWithStatus> _orderWithStatuses;
+    IEnumerable<OrderWithStatus> _orderWithStatuses;
 
     protected override async Task OnParametersSetAsync()
     {
-        _orderWithStatuses = await HttpClient.GetFromJsonAsync<List<OrderWithStatus>>("orders");
+        try
+        {
+            _orderWithStatuses = await OrdersClient.GetOrders();
+        }
+        catch (AccessTokenNotAvailableException ex)
+        {
+            ex.Redirect();
+        }
     }
 
 }

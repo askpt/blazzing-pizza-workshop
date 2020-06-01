@@ -7,10 +7,14 @@
         <img src="img/pizza-slice.svg" alt="pizza slice"/>
         <div>Get Pizza</div>
     </NavLink>
-    <NavLink href="myorders" class="nav-tab">
-        <img src="img/bike.svg" alt="bike"/>
-        <div>My Orders</div>
-    </NavLink>
+    <AuthorizeView>
+        <NavLink href="myorders" class="nav-tab">
+            <img src="img/bike.svg" alt="bike"/>
+            <div>My Orders</div>
+        </NavLink>
+    </AuthorizeView>
+    
+    <LoginDisplay />
 </div>
 
 <div class="content">

@@ -1,7 +1,8 @@
 @page "/myorders/{orderId:int}"
+@attribute [Authorize]
 
 @using System.Threading
-@inject HttpClient HttpClient
+@inject OrdersClient OrdersClient
 @implements IDisposable
 
 <div class="main">
@@ -48,26 +49,30 @@
         PollForUpdates();
     }
 
-    private async Task PollForUpdates()
+    private async void PollForUpdates()
     {
+        _invalidOrder = false;
         pollingCancellationToken = new CancellationTokenSource();
         while (!pollingCancellationToken.IsCancellationRequested)
         {
             try
             {
-                _invalidOrder = false;
-                _orderWithStatus = await HttpClient.GetFromJsonAsync<OrderWithStatus>($"orders/{OrderId}");
+                _orderWithStatus = await OrdersClient.GetOrder(OrderId);
+                StateHasChanged();
+                await Task.Delay(4000);
             }
-            catch (Exception e)
+            catch (AccessTokenNotAvailableException ex)
+            {
+                pollingCancellationToken.Cancel();
+                ex.Redirect();
+            }
+            catch (Exception ex)
             {
                 _invalidOrder = true;
                 pollingCancellationToken.Cancel();
-                Console.Error.WriteLine(e);
+                Console.Error.WriteLine(ex);
+                StateHasChanged();
             }
-            
-            StateHasChanged();
-
-            await Task.Delay(4000);
         }
     }
 

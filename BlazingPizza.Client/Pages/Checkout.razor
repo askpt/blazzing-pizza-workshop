@@ -1,7 +1,8 @@
 @page "/checkout"
+@attribute [Authorize]
 
 @inject OrderState OrderState
-@inject HttpClient HttpClient
+@inject OrdersClient OrdersClient
 @inject NavigationManager NavigationManager
 
 <div class="main">
@@ -29,16 +30,34 @@
 @code {
 
     bool _isSubmitting;
+    [CascadingParameter] public Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        if (!authState.User.Identity.IsAuthenticated)
+        {
+        // The server won't accept orders from unauthenticated users, so avoid
+        // an error by making them log in at this point
+            NavigationManager.NavigateTo("authentication/login?redirectUri=/checkout", true);
+        }
+    }
 
     async Task PlaceOrder()
     {
-        _isSubmitting = true;
-        var response = await HttpClient.PostAsJsonAsync("orders", OrderState.Order);
-        var newOrderId = await response.Content.ReadFromJsonAsync<int>();
+        try
+        {
+            _isSubmitting = true;
+            var newOrderId = await OrdersClient.PlaceOrder(OrderState.Order);
+            _isSubmitting = false;
 
-        _isSubmitting = false;
-        OrderState.ResetOrder();
-        NavigationManager.NavigateTo($"myorders/{newOrderId}");
+            OrderState.ResetOrder();
+            NavigationManager.NavigateTo($"myorders/{newOrderId}");
+        }
+        catch (AccessTokenNotAvailableException ex)
+        {
+            ex.Redirect();
+        }
     }
 
 }
