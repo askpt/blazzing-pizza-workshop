@@ -1,19 +1,19 @@
 ﻿@using Microsoft.JSInterop
-@inject IJSRuntime JSRuntime
+@inject IJSRuntime JsRuntime
 
-<div id="@elementId" style="height: 100%; width: 100%;"></div>
+<div id="@_elementId" style="height: 100%; width: 100%;"></div>
 
 @code {
-    string elementId = $"map-{Guid.NewGuid().ToString("D")}";
+    readonly string _elementId = $"map-{Guid.NewGuid():D}";
     
     [Parameter] public double Zoom { get; set; }
     [Parameter] public List<Marker> Markers { get; set; }
 
-    protected async override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JSRuntime.InvokeVoidAsync(
+        await JsRuntime.InvokeVoidAsync(
             "deliveryMap.showOrUpdate",
-            elementId,
+            _elementId,
             Markers);
     }
 }
