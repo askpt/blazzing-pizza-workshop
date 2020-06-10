@@ -3,6 +3,6 @@
         <AspNetCoreVersion>3.1.4</AspNetCoreVersion>
         <BlazorVersion>3.2.0</BlazorVersion>
         <EntityFrameworkVersion>3.1.4</EntityFrameworkVersion>
-        <SystemNetHttpJsonVersion>3.2.0</SystemNetHttpJsonVersion>
+        <SystemNetHttpJsonVersion>3.2.1</SystemNetHttpJsonVersion>
     </PropertyGroup>
 </Project>
