@@ -4,6 +4,7 @@
 @inject OrderState OrderState
 @inject OrdersClient OrdersClient
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JsRuntime
 
 <div class="main">
     <EditForm Model="@OrderState.Order.DeliveryAddress" OnValidSubmit="@PlaceOrder">
@@ -34,6 +35,9 @@
     
     protected override async Task OnInitializedAsync()
     {
+        // In the background, ask if they want to be notified about order updates
+        _ = RequestNotificationSubscriptionAsync();
+        
         var authState = await AuthenticationStateTask;
         if (!authState.User.Identity.IsAuthenticated)
         {
@@ -57,6 +61,22 @@
         catch (AccessTokenNotAvailableException ex)
         {
             ex.Redirect();
+        }
+    }
+
+    async Task RequestNotificationSubscriptionAsync()
+    {
+        var subscription = await JsRuntime.InvokeAsync<NotificationSubscription>("blazorPushNotifications.requestSubscription");
+        if (subscription != null)
+        {
+            try
+            {
+                await OrdersClient.SubscribeToNotifications(subscription);
+            }
+            catch (AccessTokenNotAvailableException e)
+            {
+                e.Redirect();
+            }
         }
     }
 
