@@ -1,6 +1,6 @@
 <Project>
     <PropertyGroup>
-        <AspNetCoreVersion>3.1.6</AspNetCoreVersion>
+        <AspNetCoreVersion>3.1.7</AspNetCoreVersion>
         <BlazorVersion>3.2.1</BlazorVersion>
         <EntityFrameworkVersion>3.1.7</EntityFrameworkVersion>
         <SystemNetHttpJsonVersion>3.2.1</SystemNetHttpJsonVersion>
